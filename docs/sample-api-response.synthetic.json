@@ -1,0 +1,11 @@
+{
+  "_NOTICE": "TEST FIXTURE ONLY - REMOVE THIS PROPERTY BEFORE MOCKING API. THESE ARE FABRICATED VALUES.",
+  "currentCount": 2,
+  "totalCount": 2,
+  "page": 1,
+  "perPage": 100,
+  "data": [
+    {"범죄대분류": "절도범죄", "범죄중분류": "절도", "서울 중구": 12, "부산 남구": 9, "부산 해운대구": 7, "대구 군위군": 0, "세종시": 1},
+    {"범죄대분류": "폭력범죄", "범죄중분류": "폭행", "서울 중구": 20, "부산 남구": 14, "부산 해운대구": 11, "대구 군위군": 0, "세종시": 2}
+  ]
+}
