@@ -48,17 +48,28 @@
 
 ```mermaid
 flowchart TD
-  A[경찰청 ODcloud REST API / JSON] --> B[OdcloudClient: 페이지별 수집, 재시도]
-  B --> C[CrimeNormalizer: 지역 컬럼을 관측값으로 변환]
-  C --> D{데이터 품질 검사}
-  D -->|실패| E[Failed 기록 / 기존 통계 유지]
-  D -->|통과| F{SHA-256 동일 데이터?}
-  F -->|동일| G[Unchanged 기록]
-  F -->|변경| H[EF Core 트랜잭션: 해당 연도 교체]
-  H --> I[(SQL Server: CrimeObservation / IngestionRun)]
-  I --> J[ASP.NET Core 조회 API]
-  J --> K[Vue 3 대시보드]
+  A["공공데이터 API"] --> B["JSON 수집"]
+  B --> C["데이터 정규화"]
+  C --> D{"품질 검증"}
+  D -->|실패| E["실패 기록"]
+  D -->|통과| F{"데이터 변경?"}
+  F -->|아니요| G["변경 없음"]
+  F -->|예| H["DB 트랜잭션"]
+  H --> I[("SQL Server")]
+  I --> J["조회 API"]
+  J --> K["Vue 화면"]
 ```
+
+각 노드는 GitHub에서 글자가 잘리지 않도록 짧게 표시했습니다. 실제 처리 내용과 코드 위치는 다음과 같습니다.
+
+| 흐름도 단계 | 처리 내용 | 구현 위치 |
+|---|---|---|
+| 공공데이터 API · JSON 수집 | 경찰청 ODcloud REST API를 페이지별로 호출하고 일시적 HTTP 오류에 재시도 | `OdcloudClient.cs` |
+| 데이터 정규화 | 원본의 지역별 열 데이터를 연도·지역·범죄 분류·건수 형태로 변환 | `CrimeNormalizer.cs` |
+| 품질 검증 · 실패 기록 | 분류 누락, 음수, 중복, 수신 건수 불일치 등을 확인하고 실패 시 기존 통계 보존 | `CrimeNormalizer.cs`, `IngestionService.cs` |
+| 데이터 변경? | 정규화 결과의 SHA-256 해시를 기존 성공 수집본과 비교 | `IngestionService.cs` |
+| DB 트랜잭션 · SQL Server | 변경된 연도의 통계를 트랜잭션으로 교체하고 처리 이력 기록 | `IngestionService.cs`, `CrimeDbContext.cs` |
+| 조회 API · Vue 화면 | 집계·지역 비교·상세 통계를 REST JSON으로 제공하고 현황판에 표시 | `Program.cs`, `frontend/src/App.vue` |
 
 원본 API는 **범죄 대/중분류가 한 행에 있고 지역명이 각각 열로 존재하는 구조**입니다. 이를 조회하기 쉬운 **`연도 + 지역 + 범죄대분류 + 범죄중분류 + 발생 건수`** 형태의 관측값으로 변환합니다. DB에는 이 조합에 복합 유니크 인덱스가 설정되어 있습니다.
 
