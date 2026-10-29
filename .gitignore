@@ -1,0 +1,23 @@
+# Secrets (never commit)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+**/secrets.json
+
+# .NET / Visual Studio
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+TestResults/
+
+# Vue / Vite
+**/node_modules/
+**/dist/
+**/coverage/
+*.log
+.DS_Store
